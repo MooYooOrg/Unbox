@@ -168,7 +168,7 @@ public protocol UnboxableRawType: UnboxCompatibleType {
     /// Transform an instance of this type from an unboxed integer
     static func transformUnboxedInt(unboxedInt: Int) -> Self?
     /// Transform an instance of this type from an unboxed string
-    static func transformUnboxedString(unboxedString: String) -> Self?
+    static func transform(unboxedString: String) -> Self?
 }
 
 /// Protocol used to enable an enum to be directly unboxable
@@ -177,7 +177,7 @@ public protocol UnboxableEnum: RawRepresentable, UnboxCompatibleType {}
 /// Protocol used to enable any type to be transformed from a JSON key into a dictionary key
 public protocol UnboxableKey: Hashable, UnboxCompatibleType {
     /// Transform an unboxed key into a key that will be used in an unboxed dictionary
-    static func transformUnboxedKey(unboxedKey: String) -> Self?
+    static func transform(unboxedKey: String) -> Self?
 }
 
 /// Protocol used to enable any type as being unboxable, by transforming a raw value
@@ -186,7 +186,7 @@ public protocol UnboxableByTransform: UnboxCompatibleType {
     associatedtype UnboxRawValueType
     
     /// Attempt to transform a raw unboxed value into an instance of this type
-    static func transformUnboxedValue(unboxedValue: UnboxRawValueType) -> Self?
+    static func transform(unboxedValue: UnboxRawValueType) -> Self?
 }
 
 /// Protocol used to enable any type as being unboxable with a certain formatter type
@@ -203,7 +203,7 @@ public protocol UnboxFormatter {
     associatedtype UnboxFormattedType
     
     /// Format an unboxed value into another value (or nil if the formatting failed)
-    func formatUnboxedValue(unboxedValue: UnboxRawValueType) -> UnboxFormattedType?
+    func format(unboxedValue: UnboxRawValueType) -> UnboxFormattedType?
 }
 
 // MARK: - Extensions
@@ -214,11 +214,11 @@ extension Bool: UnboxableRawType {
         return false
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> Bool? {
+    public static func transform(unboxedInt: Int) -> Bool? {
         return Bool(unboxedInt)
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> Bool? {
+    public static func transform(unboxedString: String) -> Bool? {
         return nil
     }
 }
@@ -229,11 +229,11 @@ extension Int: UnboxableRawType {
         return 0
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> Int? {
+    public static func transform(unboxedInt: Int) -> Int? {
         return unboxedInt
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> Int? {
+    public static func transform(unboxedString: String) -> Int? {
         return Int(unboxedString)
     }
 }
@@ -289,11 +289,11 @@ extension Double: UnboxableRawType {
         return 0
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> Double? {
+    public static func transform(unboxedInt: Int) -> Double? {
         return Double(unboxedInt)
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> Double? {
+    public static func transform(unboxedString: String) -> Double? {
         return Double(unboxedString)
     }
 }
@@ -304,11 +304,11 @@ extension Float: UnboxableRawType {
         return 0
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> Float? {
+    public static func transform(unboxedInt: Int) -> Float? {
         return Float(unboxedInt)
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> Float? {
+    public static func transform(unboxedString: String) -> Float? {
         return Float(unboxedString)
     }
 }
@@ -320,11 +320,11 @@ extension CGFloat: UnboxableRawType {
         return 0
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> CGFloat? {
+    public static func transform(unboxedInt: Int) -> CGFloat? {
         return CGFloat(unboxedInt)
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> CGFloat? {
+    public static func transform(unboxedString: String) -> CGFloat? {
         guard let double = Double(unboxedString) else {
             return nil
         }
@@ -340,11 +340,11 @@ extension String: UnboxableRawType {
         return ""
     }
     
-    public static func transformUnboxedInt(unboxedInt: Int) -> String? {
+    public static func transform(unboxedInt: Int) -> String? {
         return String(unboxedInt)
     }
     
-    public static func transformUnboxedString(unboxedString: String) -> String? {
+    public static func transform(unboxedString: String) -> String? {
         return unboxedString
     }
 }
@@ -353,7 +353,7 @@ extension String: UnboxableRawType {
 extension NSURL: UnboxableByTransform {
     public typealias UnboxRawValueType = String
     
-    public static func transformUnboxedValue(unboxedValue: String) -> Self? {
+    public static func transform(unboxedValue: String) -> Self? {
         return self.init(string: unboxedValue)
     }
     
@@ -364,7 +364,7 @@ extension NSURL: UnboxableByTransform {
 
 /// Extension making String values usable as an Unboxable keys
 extension String: UnboxableKey {
-    public static func transformUnboxedKey(unboxedKey: String) -> String? {
+    public static func transform(unboxedKey: String) -> String? {
         return unboxedKey
     }
 }
@@ -380,7 +380,7 @@ extension NSDate: UnboxableWithFormatter {
 
 /// Extension making NSDateFormatter usable as a UnboxFormatter
 extension NSDateFormatter: UnboxFormatter {
-    public func formatUnboxedValue(unboxedValue: String) -> NSDate? {
+    public func format(unboxedValue: String) -> NSDate? {
         return self.date(from: unboxedValue)
     }
 }
@@ -447,16 +447,16 @@ public class Unboxer {
             return rawValue
         }
         
-        let transformedString = UnboxValueResolver<String>(self).resolveOptionalValueForKeykey: (key, isKeyPath: isKeyPath, transform: {
-        return T.transformUnboxedString($0)
+        let transformedString = UnboxValueResolver<String>(self).resolveOptionalValueForKeykey: (key: key, isKeyPath: isKeyPath, transform: {
+        return T.transform(unboxedString: $0)
         })
         
         if let transformedString = transformedString {
             return transformedString
         }
         
-        return UnboxValueResolver<Int>(self).resolveRequiredValueForKey(key, isKeyPath: isKeyPath, fallbackValue: T.unboxFallbackValue(), transform: {
-            return T.transformUnboxedInt($0)
+        return UnboxValueResolver<Int>(self).resolveRequiredValueForKey(key: key, isKeyPath: isKeyPath, fallbackValue: T.unboxFallbackValue(), transform: {
+            return T.transform(unboxedInt: $0)
         })
     }
     
@@ -467,15 +467,15 @@ public class Unboxer {
         }
         
         let transformedString = UnboxValueResolver<String>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath, transform: {
-            return T.transformUnboxedString($0)
+            return T.transform(unboxedString: $0)
         })
         
         if let transformedString = transformedString {
             return transformedString
         }
         
-        return UnboxValueResolver<Int>(self).resolveOptionalValueForKey(key, isKeyPath: isKeyPath, transform: {
-            return T.transformUnboxedInt($0)
+        return UnboxValueResolver<Int>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath, transform: {
+            return T.transform(unboxedInt: $0)
         })
     }
     
@@ -719,28 +719,28 @@ public class Unboxer {
     /// Unbox a required value that can be transformed into its final form
     public func unbox<T: UnboxableByTransform>(key: String, isKeyPath: Bool = true) -> T {
         return UnboxValueResolver<T.UnboxRawValueType>(self).resolveRequiredValueForKey(key: key, isKeyPath: isKeyPath, fallbackValue: T.unboxFallbackValue(), transform: {
-            return T.transformUnboxedValue(unboxedValue: $0)
+            return T.transform(unboxedValue: $0)
         })
     }
     
     /// Unbox an optional value that can be transformed into its final form
     public func unbox<T: UnboxableByTransform>(key: String, isKeyPath: Bool = true) -> T? {
         return UnboxValueResolver<T.UnboxRawValueType>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath, transform: {
-            return T.transformUnboxedValue(unboxedValue: $0)
+            return T.transform(unboxedValue: $0)
         })
     }
     
     /// Unbox a required value that can be formatted using a formatter
     public func unbox<T: UnboxableWithFormatter, F: UnboxFormatter where F.UnboxFormattedType == T>(key: String, isKeyPath: Bool = true, formatter: F) -> T {
         return UnboxValueResolver<F.UnboxRawValueType>(self).resolveRequiredValueForKey(key: key, isKeyPath: isKeyPath, fallbackValue: T.unboxFallbackValue(), transform: {
-            return formatter.formatUnboxedValue(unboxedValue: $0)
+            return formatter.format(unboxedValue: $0)
         })
     }
     
     /// Unbox an optional value that can be formatted using a formatter
     public func unbox<T: UnboxableWithFormatter, F: UnboxFormatter where F.UnboxFormattedType == T>(key: String, isKeyPath: Bool = true, formatter: F) -> T? {
         return UnboxValueResolver<F.UnboxRawValueType>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath, transform: {
-            return formatter.formatUnboxedValue(unboxedValue: $0)
+            return formatter.format(unboxedValue: $0)
         })
     }
     
@@ -869,7 +869,7 @@ extension UnboxValueResolver where T: Collection, T: DictionaryLiteralConvertibl
             var transformedDictionary = [K : V]()
             
             for (unboxedKey, unboxedValue) in unboxedDictionary {
-                let transformedKey = K.transformUnboxedKey(unboxedKey: unboxedKey)
+                let transformedKey = K.transform(unboxedKey: unboxedKey)
                 let transformedValue = valueTransform(unboxedValue)
                 
                 if let transformedKey = transformedKey {
