@@ -84,9 +84,9 @@ class UnboxTests: XCTestCase {
             let optional2: UInt?
             
             init(unboxer: Unboxer) {
-                self.required = unboxer.unbox("required")
-                self.optional1 = unboxer.unbox("optional1")
-                self.optional2 = unboxer.unbox("optional2")
+                self.required = unboxer.unbox(key: "required")
+                self.optional1 = unboxer.unbox(key: "optional1")
+                self.optional2 = unboxer.unbox(key: "optional2")
             }
         }
         
@@ -96,7 +96,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            let unboxed: Model = try Unbox(dictionary)
+            let unboxed: Model = try Unbox(dictionary: dictionary)
             XCTAssertEqual(unboxed.required, 27)
             XCTAssertEqual(unboxed.optional1, 10)
             XCTAssertNil(unboxed.optional2)
@@ -112,9 +112,9 @@ class UnboxTests: XCTestCase {
             let optional2: Int32?
             
             init(unboxer: Unboxer) {
-                self.required = unboxer.unbox("required")
-                self.optional1 = unboxer.unbox("optional1")
-                self.optional2 = unboxer.unbox("optional2")
+                self.required = unboxer.unbox(key: "required")
+                self.optional1 = unboxer.unbox(key: "optional1")
+                self.optional2 = unboxer.unbox(key: "optional2")
             }
         }
         
@@ -124,7 +124,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            let unboxed: Model = try Unbox(dictionary)
+            let unboxed: Model = try Unbox(dictionary: dictionary)
             XCTAssertEqual(unboxed.required, 27)
             XCTAssertEqual(unboxed.optional1, 10)
             XCTAssertNil(unboxed.optional2)
@@ -140,9 +140,9 @@ class UnboxTests: XCTestCase {
             let optional2: Int64?
             
             init(unboxer: Unboxer) {
-                self.required = unboxer.unbox("required")
-                self.optional1 = unboxer.unbox("optional1")
-                self.optional2 = unboxer.unbox("optional2")
+                self.required = unboxer.unbox(key: "required")
+                self.optional1 = unboxer.unbox(key: "optional1")
+                self.optional2 = unboxer.unbox(key: "optional2")
             }
         }
         
@@ -152,7 +152,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            let unboxed: Model = try Unbox(dictionary)
+            let unboxed: Model = try Unbox(dictionary: dictionary)
             XCTAssertEqual(unboxed.required, 27)
             XCTAssertEqual(unboxed.optional1, 10)
             XCTAssertNil(unboxed.optional2)
@@ -171,12 +171,12 @@ class UnboxTests: XCTestCase {
             let string: String?
             
             init(unboxer: Unboxer) {
-                self.bool1 = unboxer.unbox("bool1")
-                self.bool2 = unboxer.unbox("bool2")
-                self.bool3 = unboxer.unbox("bool3")
-                self.double = unboxer.unbox("double")
-                self.float = unboxer.unbox("float")
-                self.string = unboxer.unbox("string")
+                self.bool1 = unboxer.unbox(key: "bool1")
+                self.bool2 = unboxer.unbox(key: "bool2")
+                self.bool3 = unboxer.unbox(key: "bool3")
+                self.double = unboxer.unbox(key: "double")
+                self.float = unboxer.unbox(key: "float")
+                self.string = unboxer.unbox(key: "string")
             }
         }
         
@@ -190,7 +190,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            let unboxed: Model = try Unbox(dictionary)
+            let unboxed: Model = try Unbox(dictionary: dictionary)
             XCTAssertFalse(unboxed.bool1)
             XCTAssertTrue(unboxed.bool2)
             XCTAssertTrue(unboxed.bool3)
@@ -309,7 +309,7 @@ class UnboxTests: XCTestCase {
                 "dateArray" : ["2015-12-15"]
             ]
             
-            try Unbox(dictionary: invalidDateDictionary) as Model
+            _ = try Unbox(dictionary: invalidDateDictionary) as Model
             XCTFail("Should have thrown")
         } catch {
             // Test passed
@@ -321,7 +321,7 @@ class UnboxTests: XCTestCase {
                 "dateArray" : ["2015-12-tuesday"]
             ]
             
-            try Unbox(invalidDateArrayDictionary) as Model
+            _ = try Unbox(invalidDateArrayDictionary) as Model
             XCTFail("Should have thrown")
         } catch {
             // Test passed
@@ -474,7 +474,7 @@ class UnboxTests: XCTestCase {
         }
         
         do {
-            try Unbox(dictionary: [
+            _ = try Unbox(dictionary: [
                 "dictionary" : [
                     "FAIL" : 59
                 ]
@@ -690,7 +690,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            try Unbox(dictionary: dictionary) as Model
+            _ = try Unbox(dictionary: dictionary) as Model
             XCTFail("Should have thrown")
         } catch {
             // Test passed
@@ -896,7 +896,7 @@ class UnboxTests: XCTestCase {
         let invalidDictionary: UnboxableDictionary = [:]
         
         do {
-            try Unbox(dictionary: invalidDictionary) as UnboxTestMock
+            _ = try Unbox(dictionary: invalidDictionary) as UnboxTestMock
             XCTFail("Unbox should have thrown for a missing value")
         } catch UnboxError.InvalidValues(let errors) where !errors.isEmpty {
             guard case .MissingValueForKey(_) = errors.first! else {
@@ -909,7 +909,7 @@ class UnboxTests: XCTestCase {
     }
     
     func testThrowingForInvalidRequiredValues() {
-        let invalidDictionary = UnboxTestDictionaryWithAllRequiredKeysWithValidValues(nested: false)
+        var invalidDictionary = UnboxTestDictionaryWithAllRequiredKeysWithValidValues(nested: false)
         
         for key in invalidDictionary.keys {
             let invalidValue = NSObject()
@@ -918,7 +918,7 @@ class UnboxTests: XCTestCase {
         }
         
         do {
-            try Unbox(dictionary: invalidDictionary) as UnboxTestMock
+            _ = try Unbox(dictionary: invalidDictionary) as UnboxTestMock
             XCTFail("Unbox should have thrown for an invalid value")
         } catch UnboxError.InvalidValues(let errors) where !errors.isEmpty {
             guard case .InvalidValue(_, _) = errors.first! else {
@@ -939,7 +939,7 @@ class UnboxTests: XCTestCase {
     func testThrowingForInvalidData() {
         if let data = "Not a dictionary".data(using: NSUTF8StringEncoding) {
             do {
-                try Unbox(data: data) as UnboxTestMock
+                _ = try Unbox(data: data) as UnboxTestMock
                 XCTFail("Unbox should have thrown for invalid data")
             } catch UnboxError.InvalidData {
                 // Test passed
@@ -959,7 +959,7 @@ class UnboxTests: XCTestCase {
         }
         
         do {
-            try Unbox(data: data) as UnboxTestMock
+            _ = try Unbox(data: data) as UnboxTestMock
             XCTFail()
         } catch UnboxError.InvalidData {
             // Test passed
@@ -976,7 +976,7 @@ class UnboxTests: XCTestCase {
         ]
         
         do {
-            try Unbox(dictionaries: dictionaries) as [UnboxTestMock]
+            _ = try Unbox(dictionaries: dictionaries) as [UnboxTestMock]
             XCTFail()
         } catch {
             // Test passed
@@ -1175,7 +1175,7 @@ class UnboxTests: XCTestCase {
     
     func testCustomUnboxingFailedThrows() {
         do {
-            try Unboxer.performCustomUnboxing(dictionary: [:], closure: { $0
+            _ = try Unboxer.performCustomUnboxing(dictionary: [:], closure: { _ in
                 return nil
             }) as UnboxTestMock
         } catch UnboxError.CustomUnboxingFailed {
