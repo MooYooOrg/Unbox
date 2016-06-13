@@ -126,7 +126,7 @@ public enum UnboxError: ErrorType, CustomStringConvertible {
         case .InvalidValues(let errors):
             return baseDescription + "Invalid values were encountered. Errors: " + errors.map({"\($0)"}).joined(separator: ", ")
         case .InvalidData:
-            return baseDescription + "Invalid NSData"
+            return baseDescription + "Invalid Data"
         case .CustomUnboxingFailed:
             return baseDescription + "A custom unboxing closure returned nil"
         }
@@ -134,7 +134,7 @@ public enum UnboxError: ErrorType, CustomStringConvertible {
     
     /// Thrown when one or many invalid values were encountered. Contains errors for each value. See UnboxValueError for more info.
     case InvalidValues([UnboxValueError])
-    /// Thrown when a piece of data (NSData) could not be unboxed because it was considered invalid
+    /// Thrown when a piece of data (Data) could not be unboxed because it was considered invalid
     case InvalidData
     /// Thrown when a custom unboxing closure returned nil
     case CustomUnboxingFailed
@@ -369,18 +369,18 @@ extension String: UnboxableKey {
     }
 }
 
-/// Extension making NSDate unboxable with an NSDateFormatter
-extension NSDate: UnboxableWithFormatter {
-    public typealias UnboxFormatterType = NSDateFormatter
+/// Extension making Date unboxable with an DateFormatter
+extension Date: UnboxableWithFormatter {
+    public typealias UnboxFormatterType = DateFormatter
     
-    public static func unboxFallbackValue() -> Self {
+    public static func unboxFallbackValue() -> Date {
         return self.init()
     }
 }
 
-/// Extension making NSDateFormatter usable as a UnboxFormatter
-extension NSDateFormatter: UnboxFormatter {
-    public func format(unboxedValue: String) -> NSDate? {
+/// Extension making DateFormatter usable as a UnboxFormatter
+extension DateFormatter: UnboxFormatter {
+    public func format(unboxedValue: String) -> Date? {
         return self.date(from: unboxedValue)
     }
 }
@@ -435,8 +435,8 @@ public class Unboxer {
     }
     
     /// Perform custom unboxing using an Unboxer (created from NSData) passed to a closure, or throw an UnboxError
-    public static func performCustomUnboxing<T>(data: NSData, context: Any? = nil, closure: (Unboxer) throws -> T?) throws -> T {
-        return try Unboxer.unboxer(from: dat, context: context).performCustomUnboxing(closure: closure)
+    public static func performCustomUnboxing<T>(data: Data, context: Any? = nil, closure: (Unboxer) throws -> T?) throws -> T {
+        return try Unboxer.unboxer(from: data, context: context).performCustomUnboxing(closure: closure)
     }
     
     // MARK: - Value accessing API
@@ -958,9 +958,9 @@ private extension UnboxableByTransform {
 }
 
 private extension Unboxer {
-    static func unboxer(from data: NSData, context: Any?) throws -> Unboxer {
+    static func unboxer(from data: Data, context: Any?) throws -> Unboxer {
         do {
-            guard let dictionary = try NSJSONSerialization.jsonObject(with: data, options: []) as? UnboxableDictionary else {
+            guard let dictionary = try JSONSerialization.jsonObject(with: data, options: []) as? UnboxableDictionary else {
                 throw UnboxError.InvalidData
             }
             
@@ -970,9 +970,9 @@ private extension Unboxer {
         }
     }
     
-    static func unboxers(from data: NSData, context: Any?) throws -> [Unboxer] {
+    static func unboxers(from data: Data, context: Any?) throws -> [Unboxer] {
         do {
-            guard let array = try NSJSONSerialization.jsonObject(with: data, options: [.allowFragments]) as? [UnboxableDictionary] else {
+            guard let array = try JSONSerialization.jsonObject(with: data, options: [.allowFragments]) as? [UnboxableDictionary] else {
                 throw UnboxError.InvalidData
             }
             

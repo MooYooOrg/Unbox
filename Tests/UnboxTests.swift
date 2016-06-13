@@ -230,11 +230,11 @@ class UnboxTests: XCTestCase {
     
     func testRequiredDateFormatting() {
         struct Model: Unboxable {
-            let date: NSDate
-            let dateArray: [NSDate]
+            let date: Date
+            let dateArray: [Date]
             
             init(unboxer: Unboxer) {
-                let formatter = NSDateFormatter()
+                let formatter = DateFormatter()
                 formatter.dateFormat = "YYYY-MM-dd"
                 self.date = unboxer.unbox("date", formatter: formatter)
                 self.dateArray = unboxer.unbox("dateArray", formatter: formatter)
@@ -263,18 +263,19 @@ class UnboxTests: XCTestCase {
         do {
             let unboxed: Model = try Unbox(dictionary: dictionary)
             
-            let calendar = NSCalendar.currentCalendar()
-            XCTAssertEqual(calendar.component(.Year, fromDate: unboxed.date), 2015)
-            XCTAssertEqual(calendar.component(.Month, fromDate: unboxed.date), 12)
-            XCTAssertEqual(calendar.component(.Day, fromDate: unboxed.date), 15)
+            let calendar = Calendar.current()
+            XCTAssertEqual(calendar.component(.year, from: unboxed.date), 2015)
+            XCTAssertEqual(calendar.component(.month, from: unboxed.date), 12)
+            XCTAssertEqual(calendar.component(.day, from: unboxed.date), 15)
             
             if let firstDate = unboxed.dateArray.first {
-                XCTAssertEqual(calendar.component(.Year, fromDate: firstDate), 2015)
-                XCTAssertEqual(calendar.component(.Month, fromDate: firstDate), 12)
-                XCTAssertEqual(calendar.component(.Day, fromDate: firstDate), 15)
+                XCTAssertEqual(calendar.component(.year, fromDate: firstDate), 2015)
+                XCTAssertEqual(calendar.component(.month, fromDate: firstDate), 12)
+                XCTAssertEqual(calendar.component(.day, fromDate: firstDate), 15)
             } else {
                 XCTFail("Array empty")
             }
+
         } catch {
             XCTFail("\(error)")
         }
@@ -346,7 +347,7 @@ class UnboxTests: XCTestCase {
             let dateArray: [NSDate]?
             
             init(unboxer: Unboxer) {
-                let formatter = NSDateFormatter()
+                let formatter = DateFormatter()
                 formatter.dateFormat = "YYYY-MM-dd"
                 self.date = unboxer.unbox(key: "date", formatter: formatter)
                 self.dateArray = unboxer.unbox("dateArray", formatter: formatter, allowInvalidElements: true)
@@ -643,7 +644,7 @@ class UnboxTests: XCTestCase {
         let dictionary = UnboxTestDictionaryWithAllRequiredKeysWithValidValues(nested: false)
         
         do {
-            let data = try NSJSONSerialization.data(withJSONObject: dictionary as AnyObject, options: [])
+            let data = try JSONSerialization.data(withJSONObject: dictionary as AnyObject, options: [])
             let unboxed: UnboxTestMock? = try? Unbox(data: data)
             XCTAssertNotNil(unboxed, "Could not unbox from data")
         } catch {
@@ -937,7 +938,7 @@ class UnboxTests: XCTestCase {
     }
     
     func testThrowingForInvalidData() {
-        if let data = "Not a dictionary".data(using: NSUTF8StringEncoding) {
+        if let data = "Not a dictionary".data(using: String.Encoding.utf8) {
             do {
                 _ = try Unbox(data: data) as UnboxTestMock
                 XCTFail("Unbox should have thrown for invalid data")
@@ -954,7 +955,7 @@ class UnboxTests: XCTestCase {
     func testThrowingForInvalidDataArray() {
         let notDictionaryArray = [12, 13, 9]
         
-        guard let data = try? NSJSONSerialization.data(withJSONObject: notDictionaryArray as AnyObject, options: []) else {
+        guard let data = try? JSONSerialization.data(withJSONObject: notDictionaryArray as AnyObject, options: []) else {
             return XCTFail()
         }
         
@@ -1151,7 +1152,7 @@ class UnboxTests: XCTestCase {
                 "int" : 5,
                 "string" : "Hello"
             ]
-            let data = try NSJSONSerialization.data(withJSONObject: dictionary as AnyObject, options: [])
+            let data = try JSONSerialization.data(withJSONObject: dictionary as AnyObject, options: [])
             let context = "Context"
             
             let unboxingClosure: (Unboxer) -> Model? = {
