@@ -42,9 +42,10 @@ public func Unbox<T: Unboxable>(dictionary: UnboxableDictionary, context: Any? =
 
 /// Unbox a JSON dictionary into a model `T` beginning at a provided key, optionally using a contextual object. Throws `UnboxError`.
 public func Unbox<T: Unboxable>(dictionary: UnboxableDictionary, at key: String, isKeyPath: Bool = true, context: Any? = nil) throws -> T {
-    let containerContext = UnboxContainerContext(key: key, isKeyPath: isKeyPath, context: context)
-    let container: UnboxContainer<T> = try Unbox(dictionary, context: containerContext)
-    return container.model
+//    let containerContext = UnboxContainerContext(key: key, isKeyPath: isKeyPath, context: context)
+//    let container: UnboxContainer<T> = try Unbox(dictionary, context: containerContext)
+//    return container.model
+    return try Unboxer.unboxer(at: key, in: dictionary, context: context).performUnboxing()
 }
 
 /// Unbox an array of JSON dictionaries into an array of `T`, optionally using a contextual object and/or invalid elements. Throws `UnboxError`.
@@ -62,6 +63,7 @@ public func Unbox<T: Unboxable>(dictionary: UnboxableDictionary, at key: String,
 }
 
 /// Unbox binary data into a model `T`, optionally using a contextual object. Throws `UnboxError`.
+
 public func Unbox<T: Unboxable>(data: Data, context: Any? = nil) throws -> T {
     return try Unboxer.unboxer(from: data, context: context).performUnboxing()
 }
@@ -976,6 +978,14 @@ private extension Unboxer {
         } catch {
             throw UnboxError.InvalidData
         }
+    }
+    
+    static func unboxer(at key: String, in dictionary: UnboxableDictionary, context: Any?) throws -> Unboxer {
+        guard let nestedDictionary = dictionary[key] as? UnboxableDictionary else {
+            throw UnboxValueError.MissingValueForKey(key)
+        }
+        
+        return Unboxer(dictionary: nestedDictionary, context: context)
     }
     
     func performUnboxing<T: Unboxable>() throws -> T {
