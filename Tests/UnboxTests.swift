@@ -246,7 +246,7 @@ class UnboxTests: XCTestCase {
             let dateArray: [NSDate]
             
             init(unboxer: Unboxer) {
-                let formatter = NSDateFormatter()
+                let formatter = DateFormatter()
                 formatter.dateFormat = "YYYY-MM-dd"
                 self.date = unboxer.unbox("date", formatter: formatter)
                 self.dateArray = unboxer.unbox("dateArray", formatter: formatter, allowInvalidElements: true)
@@ -269,9 +269,9 @@ class UnboxTests: XCTestCase {
             XCTAssertEqual(calendar.component(.day, from: unboxed.date), 15)
             
             if let firstDate = unboxed.dateArray.first {
-                XCTAssertEqual(calendar.component(.year, fromDate: firstDate), 2015)
-                XCTAssertEqual(calendar.component(.month, fromDate: firstDate), 12)
-                XCTAssertEqual(calendar.component(.day, fromDate: firstDate), 15)
+                XCTAssertEqual(calendar.component(.year, from: firstDate), 2015)
+                XCTAssertEqual(calendar.component(.month, from: firstDate), 12)
+                XCTAssertEqual(calendar.component(.day, from: firstDate), 15)
             } else {
                 XCTFail("Array empty")
             }
@@ -291,10 +291,10 @@ class UnboxTests: XCTestCase {
             XCTAssertEqual(unboxed.dateArray.count, 1)
             
             if let firstDate = unboxed.dateArray.first {
-                let calendar = NSCalendar.currentCalendar()
-                XCTAssertEqual(calendar.component(.Year, fromDate: firstDate), 2015)
-                XCTAssertEqual(calendar.component(.Month, fromDate: firstDate), 12)
-                XCTAssertEqual(calendar.component(.Day, fromDate: firstDate), 15)
+                let calendar = Calendar.current()
+                XCTAssertEqual(calendar.component(.year, from: firstDate), 2015)
+                XCTAssertEqual(calendar.component(.month, from: firstDate), 12)
+                XCTAssertEqual(calendar.component(.day, from: firstDate), 15)
             } else {
                 XCTFail("Array empty")
             }
