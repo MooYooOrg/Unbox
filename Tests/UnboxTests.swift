@@ -331,11 +331,11 @@ class UnboxTests: XCTestCase {
     
     func testOptionalDateFormattingFailureNotThrowing() {
         struct Model: Unboxable {
-            let date: NSDate?
-            let dateArray: [NSDate]?
+            let date: Date?
+            let dateArray: [Date]?
             
             init(unboxer: Unboxer) {
-                let formatter = NSDateFormatter()
+                let formatter = DateFormatter()
                 formatter.dateFormat = "YYYY-MM-dd"
                 self.date = unboxer.unbox("date", formatter: formatter)
                 self.dateArray = unboxer.unbox("dateArray", formatter: formatter)
@@ -343,8 +343,8 @@ class UnboxTests: XCTestCase {
         }
         
         struct AllowInvalidElementsModel: Unboxable {
-            let date: NSDate?
-            let dateArray: [NSDate]?
+            let date: Date?
+            let dateArray: [Date]?
             
             init(unboxer: Unboxer) {
                 let formatter = DateFormatter()
@@ -1006,7 +1006,7 @@ class UnboxTests: XCTestCase {
     }
     
     func testRequiredContext() {
-        let dictionary = [
+        let dictionary: UnboxableDictionary = [
             "nested" : [:],
             "nestedArray": [[:]]
         ]
@@ -1570,9 +1570,9 @@ private class UnboxTestBaseMock: Unboxable {
             case UnboxTestBaseMock.optionalFloatKey:
                 verificationOutcome = self.verifyPropertyValue(value: self.optionalFloat, againstDictionaryValue: value)
             case UnboxTestBaseMock.requiredCGFloatKey:
-                verificationOutcome = self.verifyPropertyValue(value: self.requiredCGFloat, againstDictionaryValue: value)
+                verificationOutcome = self.verifyTransformableValue(value: self.requiredCGFloat, againstDictionaryValue: value)
             case UnboxTestBaseMock.optionalCGFloatKey:
-                verificationOutcome = self.verifyPropertyValue(value: self.optionalCGFloat, againstDictionaryValue: value)
+                verificationOutcome = self.verifyTransformableValue(value: self.optionalCGFloat, againstDictionaryValue: value)
             case UnboxTestBaseMock.requiredEnumKey:
                 verificationOutcome = self.verifyEnumPropertyValue(value: self.requiredEnum, againstDictionaryValue: value)
             case UnboxTestBaseMock.optionalEnumKey:
@@ -1582,9 +1582,9 @@ private class UnboxTestBaseMock: Unboxable {
             case UnboxTestBaseMock.optionalStringKey:
                 verificationOutcome = self.verifyPropertyValue(value: self.optionalString, againstDictionaryValue: value)
             case UnboxTestBaseMock.requiredURLKey:
-                verificationOutcome = self.verifyURLPropertyValue(value: self.requiredURL, againstDictionaryValue: value)
+                verificationOutcome = self.verifyTransformableValue(value: self.requiredURL, againstDictionaryValue: value)
             case UnboxTestBaseMock.optionalURLKey:
-                verificationOutcome = self.verifyURLPropertyValue(value: self.optionalURL, againstDictionaryValue: value)
+                verificationOutcome = self.verifyTransformableValue(value: self.optionalURL, againstDictionaryValue: value)
             case UnboxTestBaseMock.requiredArrayKey:
                 verificationOutcome = self.verifyArrayPropertyValue(value: self.requiredArray, againstDictionaryValue: value)
             case UnboxTestBaseMock.optionalArrayKey:
@@ -1601,7 +1601,7 @@ private class UnboxTestBaseMock: Unboxable {
         }
     }
     
-    func verifyPropertyValue<T: Equatable>(value: T?, againstDictionaryValue dictionaryValue: AnyObject?) -> Bool {
+    func verifyPropertyValue<T: Equatable>(value: T?, againstDictionaryValue dictionaryValue: Any?) -> Bool {
         if let propertyValue = value {
             if let typedDictionaryValue = dictionaryValue as? T {
                 return propertyValue == typedDictionaryValue
@@ -1611,7 +1611,7 @@ private class UnboxTestBaseMock: Unboxable {
         return false
     }
     
-    func verifyEnumPropertyValue<T: UnboxableEnum where T: Equatable>(value: T?, againstDictionaryValue dictionaryValue: AnyObject?) -> Bool {
+    func verifyEnumPropertyValue<T: UnboxableEnum>(value: T?, againstDictionaryValue dictionaryValue: Any?) -> Bool where T: Equatable {
         if let rawValue = dictionaryValue as? T.RawValue {
             if let enumValue = T(rawValue: rawValue) {
                 return value == enumValue
@@ -1621,15 +1621,15 @@ private class UnboxTestBaseMock: Unboxable {
         return false
     }
     
-    func verifyURLPropertyValue(value: NSURL?, againstDictionaryValue dictionaryValue: AnyObject?) -> Bool {
-        if let string = dictionaryValue as? String {
-            return self.verifyPropertyValue(value: self.requiredURL, againstDictionaryValue: NSURL(string: string))
+    func verifyTransformableValue<T: UnboxableByTransform>(value: T?, againstDictionaryValue dictionaryValue: Any?) -> Bool where T: Equatable {
+        if let rawValue = dictionaryValue as? T.UnboxRawValueType {
+            return self.verifyPropertyValue(value: value, againstDictionaryValue: T.transform(unboxedValue: rawValue))
         }
         
         return false
     }
     
-    func verifyArrayPropertyValue<T: Equatable>(value: [T]?, againstDictionaryValue dictionaryValue: AnyObject?) -> Bool {
+    func verifyArrayPropertyValue<T: Equatable>(value: [T]?, againstDictionaryValue dictionaryValue: Any?) -> Bool {
         if let propertyValue = value {
             if let dictionaryArrayValue = dictionaryValue as? [T] {
                 for i in 0..<dictionaryArrayValue.count {
@@ -1645,7 +1645,7 @@ private class UnboxTestBaseMock: Unboxable {
         return false
     }
     
-    func verifyEnumArrayPropertyValue<T: UnboxableEnum where T: Equatable>(value: [T]?, againstDictionaryValue dictionaryValue: AnyObject?) -> Bool {
+    func verifyEnumArrayPropertyValue<T: UnboxableEnum>(value: [T]?, againstDictionaryValue dictionaryValue: Any?) -> Bool where T: Equatable {
         if let propertyValue = value {
             if let dictionaryArrayValue = dictionaryValue as? [T.RawValue] {
                 for i in 0..<dictionaryArrayValue.count {
