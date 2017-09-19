@@ -501,15 +501,15 @@ public class Unboxer {
         return UnboxValueResolver<[T]>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath)
     }
     
-    /// Unbox a required Array of collections
-    public func unbox<T: Collection>(key: String, isKeyPath: Bool = true) -> [T] {
-        return UnboxValueResolver<[T]>(self).resolveRequiredValueForKey(key: key, isKeyPath: isKeyPath, fallbackValue: [])
-    }
-    
-    /// Unbox an optional Array of collections
-    public func unbox<T: Collection>(key: String, isKeyPath: Bool = true) -> [T]? {
-        return UnboxValueResolver<[T]>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath)
-    }
+//    /// Unbox a required Array of collections
+//    public func unbox<T: Collection>(key: String, isKeyPath: Bool = true) -> [T] {
+//        return UnboxValueResolver<[T]>(self).resolveRequiredValueForKey(key: key, isKeyPath: isKeyPath, fallbackValue: [])
+//    }
+//
+//    /// Unbox an optional Array of collections
+//    public func unbox<T: Collection>(key: String, isKeyPath: Bool = true) -> [T]? {
+//        return UnboxValueResolver<[T]>(self).resolveOptionalValueForKey(key: key, isKeyPath: isKeyPath)
+//    }
 
     /// Unbox a required Array of values that can be transformed into its final form
     public func unbox<T: UnboxableByTransform>(key: String, isKeyPath: Bool = true, allowInvalidElements: Bool = false) -> [T] {
